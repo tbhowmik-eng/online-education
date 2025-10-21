@@ -1,0 +1,437 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Online Driver Education Insights – Prototype (v3.2)</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 0; background:#0b1020; color:#e8eaf6;}
+    header { padding: 20px 24px; background: linear-gradient(90deg, #121a39, #162049); border-bottom: 1px solid #233; }
+    h1 { font-size: 20px; margin: 0 0 4px; }
+    .sub { opacity:.85; font-size: 13px; }
+    .container { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; padding: 16px 24px; }
+    .card { background: #121a39; border: 1px solid #1f274d; border-radius: 14px; padding: 12px; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+    .card h2 { font-size: 14px; margin: 6px 0 10px; color:#b9c7ff; letter-spacing:.2px;}
+    .row { display: grid; gap: 10px; }
+    .grid2 { grid-template-columns: 1fr 1fr; }
+    .grid3 { grid-template-columns: 1fr 1fr 1fr; }
+    .grid4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    .label { font-size: 12px; opacity:.9; margin-bottom:4px; }
+    select, button, input[type="text"] { background:#0f1734; color:#e8eaf6; border:1px solid #26305f; padding:8px 10px; border-radius:10px; font-size:13px; }
+    .pill { display:inline-block; padding:5px 8px; margin:2px; border-radius:999px; background:#0f1734; border:1px solid #2b3975; font-size:12px; }
+    table { width:100%; border-collapse: collapse; font-size: 12.5px; }
+    th, td { border-bottom: 1px solid #233; padding: 6px 4px; text-align:left; }
+    th { color:#c9d4ff; font-weight:600; }
+    .muted { opacity:.8; }
+    .kpi { font-size: 22px; font-weight:700; color:#ffffff; }
+    .kpi-sub { font-size: 12px; opacity:.8; }
+    footer { padding: 10px 24px 24px; color:#a7b0e6; font-size:12px; opacity:.85;}
+    a { color:#a9c7ff; }
+    .prompt { display:flex; gap:8px; }
+    .small { font-size:12px; opacity:.85; }
+    .tag { display:inline-block; font-size:11px; padding:4px 6px; background:#0f1734; border:1px solid #2b3975; border-radius:8px; margin-right:6px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Online Driver Education Insights – Prototype (v3.2)</h1>
+    <div class="sub">Your preferred v3 UI, now with mode shares + gender/income breakdown by mode. (All figures are illustrative placeholders.)</div>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h2>U.S. Map (choose metric, then click a state)</h2>
+      <div class="row grid3">
+        <div>
+          <div class="label">Map metric</div>
+          <select id="metric">
+            <option value="online_share">% Online Share</option>
+            <option value="inperson_share">% In‑Person Share</option>
+            <option value="hybrid_share">% Hybrid Share</option>
+            <option value="rural_teen_share">% Rural Teen Share</option>
+          </select>
+        </div>
+      </div>
+      <div id="map" style="height:520px;margin-top:10px;"></div>
+    </div>
+
+    <div class="card">
+      <h2>State Snapshot</h2>
+      <div id="stateName" class="kpi">—</div>
+      <div class="kpi-sub muted" id="stateSubtitle">Select a state on the map to view details.</div>
+
+      <div class="row grid3" style="margin-top:10px;">
+        <div>
+          <div class="label">Online Allowed</div>
+          <div id="kpiAllowed" class="kpi">—</div>
+        </div>
+        <div>
+          <div class="label">Est. Online Share</div>
+          <div id="kpiShare" class="kpi">—</div>
+        </div>
+        <div>
+          <div class="label">Demographics (sample)</div>
+          <div id="demo" class="kpi-sub">—</div>
+        </div>
+      </div>
+
+      <div class="row grid2" style="margin-top:12px;">
+        <div>
+          <div class="label">Formats</div>
+          <div id="formats"></div>
+        </div>
+        <div>
+          <div class="label">Oversight</div>
+          <div id="oversight"></div>
+        </div>
+      </div>
+
+      <div class="row grid2" style="margin-top:12px;">
+        <div>
+          <div class="label">Providers</div>
+          <div id="providers"></div>
+        </div>
+        <div>
+          <div class="label">Mode Mix (Online / In‑Person / Hybrid)</div>
+          <div id="modePie" style="height:240px;"></div>
+        </div>
+      </div>
+
+      <div class="row grid2" style="margin-top:12px;">
+        <div>
+          <div class="label">Breakdown by Mode</div>
+          <select id="breakdown">
+            <option value="gender">Gender (Male / Female)</option>
+            <option value="income">Income (Low / Medium / High)</option>
+          </select>
+          <div id="modeBreakdown" style="height:260px;margin-top:6px;"></div>
+        </div>
+        <div>
+          <div class="label">Perception Indicators</div>
+          <div id="radar" style="height:260px;"></div>
+        </div>
+      </div>
+
+      <div class="row grid3" style="margin-top:12px;">
+        <div>
+          <div class="label">Satisfaction</div>
+          <div id="kpiSatisf" class="kpi">—</div>
+        </div>
+        <div>
+          <div class="label">Engagement</div>
+          <div id="kpiEngage" class="kpi">—</div>
+        </div>
+        <div>
+          <div class="label">Preparedness</div>
+          <div id="kpiPrep" class="kpi">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Multi‑State Comparison</h2>
+      <div class="row grid4">
+        <div>
+          <div class="label">Pick states (up to 5)</div>
+          <select id="selMulti" multiple size="8" style="width:100%;"></select>
+          <div class="small muted" style="margin-top:6px;">Tip: Ctrl/Cmd‑click to select multiple.</div>
+        </div>
+        <div style="display:flex;align-items:flex-end;">
+          <button id="compareBtn">Compare</button>
+        </div>
+      </div>
+      <div id="compareChart" style="height:340px;margin-top:10px;"></div>
+      <table id="compareTable" style="margin-top:8px;">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Value(s)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Notes</h2>
+      <p class="muted">All figures are illustrative placeholders for proposal purposes. Final tool will load state‑level statistics, policy text, and survey outputs via a data API.</p>
+      <p class="muted">Perception indicators are scaled 0–100 (Satisfaction, Engagement) and 0–10 (Preparedness Confidence). “Online Share” is an estimated percentage of classroom DE completed online.</p>
+    </div>
+
+    <div class="card">
+      <h2>Ask the Tool (prototype)</h2>
+      <div class="prompt">
+        <input id="q" type="text" placeholder="e.g., Mode mix in Texas; Gender in California; Income in Florida; Compare Oregon and Virginia" style="flex:1;" />
+        <button id="askBtn">Ask</button>
+      </div>
+      <div id="answer" style="margin-top:10px;"></div>
+      <div style="margin-top:8px;">
+        <span class="tag">online share</span>
+        <span class="tag">in‑person share</span>
+        <span class="tag">hybrid share</span>
+        <span class="tag">modes allowed</span>
+        <span class="tag">formats</span>
+        <span class="tag">providers</span>
+        <span class="tag">oversight</span>
+        <span class="tag">gender</span>
+        <span class="tag">income</span>
+        <span class="tag">compare</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Prototype built for proposal visualization. © 2025
+  </footer>
+
+<script>
+const DATA = {"AL": {"name": "Alabama", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 46, "inperson_share": 15, "hybrid_share": 39, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 68, "engagement": 73, "prep": 7.8, "rural_teen_share": 33, "gender_by_mode": {"Online": {"male": 50, "female": 50}, "In\u2011Person": {"male": 55, "female": 45}, "Hybrid": {"male": 60, "female": 40}}, "income_by_mode": {"Online": {"low": 34, "med": 39, "high": 27}, "In\u2011Person": {"low": 50, "med": 40, "high": 10}, "Hybrid": {"low": 40, "med": 32, "high": 28}}}, "AK": {"name": "Alaska", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 29, "inperson_share": 36, "hybrid_share": 35, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 61, "engagement": 81, "prep": 7.7, "rural_teen_share": 28, "gender_by_mode": {"Online": {"male": 58, "female": 42}, "In\u2011Person": {"male": 53, "female": 47}, "Hybrid": {"male": 55, "female": 45}}, "income_by_mode": {"Online": {"low": 37, "med": 51, "high": 12}, "In\u2011Person": {"low": 27, "med": 33, "high": 40}, "Hybrid": {"low": 47, "med": 30, "high": 23}}}, "AZ": {"name": "Arizona", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 30, "inperson_share": 28, "hybrid_share": 42, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 62, "engagement": 81, "prep": 7.2, "rural_teen_share": 25, "gender_by_mode": {"Online": {"male": 55, "female": 45}, "In\u2011Person": {"male": 52, "female": 48}, "Hybrid": {"male": 53, "female": 47}}, "income_by_mode": {"Online": {"low": 30, "med": 30, "high": 40}, "In\u2011Person": {"low": 31, "med": 46, "high": 23}, "Hybrid": {"low": 41, "med": 39, "high": 20}}}, "AR": {"name": "Arkansas", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 45, "inperson_share": 22, "hybrid_share": 33, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 61, "engagement": 69, "prep": 8.2, "rural_teen_share": 28, "gender_by_mode": {"Online": {"male": 48, "female": 52}, "In\u2011Person": {"male": 47, "female": 53}, "Hybrid": {"male": 49, "female": 51}}, "income_by_mode": {"Online": {"low": 22, "med": 33, "high": 45}, "In\u2011Person": {"low": 45, "med": 40, "high": 15}, "Hybrid": {"low": 20, "med": 31, "high": 49}}}, "CA": {"name": "California", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 58, "inperson_share": 25, "hybrid_share": 17, "formats": ["In\u2011Person", "Online", "Home\u2011study"], "oversight": "CA Department of Motor Vehicles (DMV)", "providers": ["Commercial driving schools", "Public schools (limited)"], "satisfaction": 81, "engagement": 78, "prep": 7.3, "rural_teen_share": 24, "gender_by_mode": {"Online": {"male": 60, "female": 40}, "In\u2011Person": {"male": 56, "female": 44}, "Hybrid": {"male": 59, "female": 41}}, "income_by_mode": {"Online": {"low": 45, "med": 39, "high": 16}, "In\u2011Person": {"low": 35, "med": 32, "high": 33}, "Hybrid": {"low": 20, "med": 45, "high": 35}}}, "CO": {"name": "Colorado", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 34, "inperson_share": 34, "hybrid_share": 32, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 81, "engagement": 65, "prep": 6.5, "rural_teen_share": 22, "gender_by_mode": {"Online": {"male": 59, "female": 41}, "In\u2011Person": {"male": 55, "female": 45}, "Hybrid": {"male": 50, "female": 50}}, "income_by_mode": {"Online": {"low": 49, "med": 37, "high": 14}, "In\u2011Person": {"low": 43, "med": 45, "high": 12}, "Hybrid": {"low": 21, "med": 52, "high": 27}}}, "CT": {"name": "Connecticut", "allowed": true, "allow_inperson": true, "allow_hybrid": false, "online_share": 15, "inperson_share": 48, "hybrid_share": 37, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 68, "engagement": 71, "prep": 8.4, "rural_teen_share": 18, "gender_by_mode": {"Online": {"male": 53, "female": 47}, "In\u2011Person": {"male": 60, "female": 40}, "Hybrid": {"male": 60, "female": 40}}, "income_by_mode": {"Online": {"low": 32, "med": 30, "high": 38}, "In\u2011Person": {"low": 44, "med": 42, "high": 14}, "Hybrid": {"low": 30, "med": 55, "high": 15}}}, "DE": {"name": "Delaware", "allowed": false, "allow_inperson": true, "allow_hybrid": false, "online_share": 30, "inperson_share": 20, "hybrid_share": 50, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 82, "engagement": 68, "prep": 7.7, "rural_teen_share": 14, "gender_by_mode": {"Online": {"male": 50, "female": 50}, "In\u2011Person": {"male": 56, "female": 44}, "Hybrid": {"male": 58, "female": 42}}, "income_by_mode": {"Online": {"low": 33, "med": 55, "high": 12}, "In\u2011Person": {"low": 30, "med": 59, "high": 11}, "Hybrid": {"low": 40, "med": 41, "high": 19}}}, "FL": {"name": "Florida", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 62, "inperson_share": 20, "hybrid_share": 18, "formats": ["In\u2011Person", "Online"], "oversight": "Florida Highway Safety and Motor Vehicles (FLHSMV)", "providers": ["Private vendors", "Public high schools (DELAP)"], "satisfaction": 83, "engagement": 78, "prep": 8.3, "rural_teen_share": 5, "gender_by_mode": {"Online": {"male": 52, "female": 48}, "In\u2011Person": {"male": 60, "female": 40}, "Hybrid": {"male": 47, "female": 53}}, "income_by_mode": {"Online": {"low": 45, "med": 38, "high": 17}, "In\u2011Person": {"low": 47, "med": 39, "high": 14}, "Hybrid": {"low": 22, "med": 48, "high": 30}}}, "GA": {"name": "Georgia", "allowed": true, "allow_inperson": true, "allow_hybrid": false, "online_share": 17, "inperson_share": 22, "hybrid_share": 61, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 79, "engagement": 60, "prep": 6.6, "rural_teen_share": 26, "gender_by_mode": {"Online": {"male": 45, "female": 55}, "In\u2011Person": {"male": 58, "female": 42}, "Hybrid": {"male": 56, "female": 44}}, "income_by_mode": {"Online": {"low": 20, "med": 57, "high": 23}, "In\u2011Person": {"low": 50, "med": 32, "high": 18}, "Hybrid": {"low": 33, "med": 30, "high": 37}}}, "HI": {"name": "Hawaii", "allowed": true, "allow_inperson": true, "allow_hybrid": false, "online_share": 68, "inperson_share": 11, "hybrid_share": 21, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 61, "engagement": 82, "prep": 6.5, "rural_teen_share": 29, "gender_by_mode": {"Online": {"male": 51, "female": 49}, "In\u2011Person": {"male": 52, "female": 48}, "Hybrid": {"male": 48, "female": 52}}, "income_by_mode": {"Online": {"low": 30, "med": 41, "high": 29}, "In\u2011Person": {"low": 22, "med": 55, "high": 23}, "Hybrid": {"low": 48, "med": 41, "high": 11}}}, "ID": {"name": "Idaho", "allowed": true, "allow_inperson": true, "allow_hybrid": false, "online_share": 41, "inperson_share": 37, "hybrid_share": 22, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 81, "engagement": 58, "prep": 8.1, "rural_teen_share": 20, "gender_by_mode": {"Online": {"male": 54, "female": 46}, "In\u2011Person": {"male": 55, "female": 45}, "Hybrid": {"male": 55, "female": 45}}, "income_by_mode": {"Online": {"low": 36, "med": 34, "high": 30}, "In\u2011Person": {"low": 43, "med": 40, "high": 17}, "Hybrid": {"low": 23, "med": 40, "high": 37}}}, "IL": {"name": "Illinois", "allowed": true, "allow_inperson": true, "allow_hybrid": false, "online_share": 34, "inperson_share": 41, "hybrid_share": 25, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 62, "engagement": 74, "prep": 6.9, "rural_teen_share": 9, "gender_by_mode": {"Online": {"male": 53, "female": 47}, "In\u2011Person": {"male": 48, "female": 52}, "Hybrid": {"male": 50, "female": 50}}, "income_by_mode": {"Online": {"low": 33, "med": 46, "high": 21}, "In\u2011Person": {"low": 24, "med": 34, "high": 42}, "Hybrid": {"low": 45, "med": 45, "high": 10}}}, "IN": {"name": "Indiana", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 44, "inperson_share": 24, "hybrid_share": 32, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 67, "engagement": 58, "prep": 6.5, "rural_teen_share": 7, "gender_by_mode": {"Online": {"male": 49, "female": 51}, "In\u2011Person": {"male": 55, "female": 45}, "Hybrid": {"male": 50, "female": 50}}, "income_by_mode": {"Online": {"low": 31, "med": 53, "high": 16}, "In\u2011Person": {"low": 28, "med": 37, "high": 35}, "Hybrid": {"low": 29, "med": 49, "high": 22}}}, "IA": {"name": "Iowa", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 63, "inperson_share": 10, "hybrid_share": 27, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 78, "engagement": 67, "prep": 8.4, "rural_teen_share": 13, "gender_by_mode": {"Online": {"male": 52, "female": 48}, "In\u2011Person": {"male": 46, "female": 54}, "Hybrid": {"male": 54, "female": 46}}, "income_by_mode": {"Online": {"low": 25, "med": 42, "high": 33}, "In\u2011Person": {"low": 20, "med": 41, "high": 39}, "Hybrid": {"low": 22, "med": 33, "high": 45}}}, "KS": {"name": "Kansas", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 62, "inperson_share": 13, "hybrid_share": 25, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 70, "engagement": 65, "prep": 8.1, "rural_teen_share": 6, "gender_by_mode": {"Online": {"male": 52, "female": 48}, "In\u2011Person": {"male": 49, "female": 51}, "Hybrid": {"male": 50, "female": 50}}, "income_by_mode": {"Online": {"low": 45, "med": 42, "high": 13}, "In\u2011Person": {"low": 39, "med": 32, "high": 29}, "Hybrid": {"low": 47, "med": 39, "high": 14}}}, "KY": {"name": "Kentucky", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 41, "inperson_share": 16, "hybrid_share": 43, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 73, "engagement": 80, "prep": 7.1, "rural_teen_share": 28, "gender_by_mode": {"Online": {"male": 57, "female": 43}, "In\u2011Person": {"male": 54, "female": 46}, "Hybrid": {"male": 58, "female": 42}}, "income_by_mode": {"Online": {"low": 27, "med": 48, "high": 25}, "In\u2011Person": {"low": 41, "med": 42, "high": 17}, "Hybrid": {"low": 45, "med": 44, "high": 11}}}, "LA": {"name": "Louisiana", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 38, "inperson_share": 35, "hybrid_share": 27, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 74, "engagement": 63, "prep": 7.1, "rural_teen_share": 31, "gender_by_mode": {"Online": {"male": 46, "female": 54}, "In\u2011Person": {"male": 48, "female": 52}, "Hybrid": {"male": 50, "female": 50}}, "income_by_mode": {"Online": {"low": 25, "med": 42, "high": 33}, "In\u2011Person": {"low": 30, "med": 45, "high": 25}, "Hybrid": {"low": 49, "med": 32, "high": 19}}}, "ME": {"name": "Maine", "allowed": false, "allow_inperson": true, "allow_hybrid": false, "online_share": 63, "inperson_share": 16, "hybrid_share": 21, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 85, "engagement": 62, "prep": 8.4, "rural_teen_share": 18, "gender_by_mode": {"Online": {"male": 49, "female": 51}, "In\u2011Person": {"male": 47, "female": 53}, "Hybrid": {"male": 57, "female": 43}}, "income_by_mode": {"Online": {"low": 23, "med": 58, "high": 19}, "In\u2011Person": {"low": 38, "med": 46, "high": 16}, "Hybrid": {"low": 34, "med": 42, "high": 24}}}, "MD": {"name": "Maryland", "allowed": false, "allow_inperson": true, "allow_hybrid": true, "online_share": 10, "inperson_share": 47, "hybrid_share": 43, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 74, "engagement": 73, "prep": 6.9, "rural_teen_share": 32, "gender_by_mode": {"Online": {"male": 54, "female": 46}, "In\u2011Person": {"male": 50, "female": 50}, "Hybrid": {"male": 58, "female": 42}}, "income_by_mode": {"Online": {"low": 29, "med": 49, "high": 22}, "In\u2011Person": {"low": 34, "med": 51, "high": 15}, "Hybrid": {"low": 27, "med": 43, "high": 30}}}, "MA": {"name": "Massachusetts", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 26, "inperson_share": 10, "hybrid_share": 64, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 69, "engagement": 58, "prep": 8.4, "rural_teen_share": 33, "gender_by_mode": {"Online": {"male": 54, "female": 46}, "In\u2011Person": {"male": 51, "female": 49}, "Hybrid": {"male": 54, "female": 46}}, "income_by_mode": {"Online": {"low": 34, "med": 31, "high": 35}, "In\u2011Person": {"low": 46, "med": 33, "high": 21}, "Hybrid": {"low": 28, "med": 49, "high": 23}}}, "MI": {"name": "Michigan", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 37, "inperson_share": 42, "hybrid_share": 21, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 63, "engagement": 64, "prep": 6.6, "rural_teen_share": 15, "gender_by_mode": {"Online": {"male": 52, "female": 48}, "In\u2011Person": {"male": 53, "female": 47}, "Hybrid": {"male": 55, "female": 45}}, "income_by_mode": {"Online": {"low": 46, "med": 40, "high": 14}, "In\u2011Person": {"low": 28, "med": 41, "high": 31}, "Hybrid": {"low": 20, "med": 39, "high": 41}}}, "MN": {"name": "Minnesota", "allowed": false, "allow_inperson": true, "allow_hybrid": true, "online_share": 58, "inperson_share": 11, "hybrid_share": 31, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 66, "engagement": 58, "prep": 8.2, "rural_teen_share": 14, "gender_by_mode": {"Online": {"male": 46, "female": 54}, "In\u2011Person": {"male": 58, "female": 42}, "Hybrid": {"male": 55, "female": 45}}, "income_by_mode": {"Online": {"low": 30, "med": 58, "high": 12}, "In\u2011Person": {"low": 23, "med": 43, "high": 34}, "Hybrid": {"low": 46, "med": 38, "high": 16}}}, "MS": {"name": "Mississippi", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 52, "inperson_share": 21, "hybrid_share": 27, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 61, "engagement": 77, "prep": 6.5, "rural_teen_share": 22, "gender_by_mode": {"Online": {"male": 60, "female": 40}, "In\u2011Person": {"male": 47, "female": 53}, "Hybrid": {"male": 53, "female": 47}}, "income_by_mode": {"Online": {"low": 34, "med": 39, "high": 27}, "In\u2011Person": {"low": 22, "med": 40, "high": 38}, "Hybrid": {"low": 33, "med": 49, "high": 18}}}, "MO": {"name": "Missouri", "allowed": true, "allow_inperson": true, "allow_hybrid": false, "online_share": 31, "inperson_share": 21, "hybrid_share": 48, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 69, "engagement": 62, "prep": 7.9, "rural_teen_share": 19, "gender_by_mode": {"Online": {"male": 56, "female": 44}, "In\u2011Person": {"male": 56, "female": 44}, "Hybrid": {"male": 54, "female": 46}}, "income_by_mode": {"Online": {"low": 44, "med": 39, "high": 17}, "In\u2011Person": {"low": 29, "med": 40, "high": 31}, "Hybrid": {"low": 41, "med": 48, "high": 11}}}, "MT": {"name": "Montana", "allowed": false, "allow_inperson": true, "allow_hybrid": true, "online_share": 10, "inperson_share": 29, "hybrid_share": 61, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 73, "engagement": 75, "prep": 8.0, "rural_teen_share": 32, "gender_by_mode": {"Online": {"male": 55, "female": 45}, "In\u2011Person": {"male": 50, "female": 50}, "Hybrid": {"male": 49, "female": 51}}, "income_by_mode": {"Online": {"low": 49, "med": 37, "high": 14}, "In\u2011Person": {"low": 41, "med": 34, "high": 25}, "Hybrid": {"low": 33, "med": 37, "high": 30}}}, "NE": {"name": "Nebraska", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 20, "inperson_share": 50, "hybrid_share": 30, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 73, "engagement": 75, "prep": 8.3, "rural_teen_share": 26, "gender_by_mode": {"Online": {"male": 60, "female": 40}, "In\u2011Person": {"male": 48, "female": 52}, "Hybrid": {"male": 45, "female": 55}}, "income_by_mode": {"Online": {"low": 39, "med": 50, "high": 11}, "In\u2011Person": {"low": 39, "med": 36, "high": 25}, "Hybrid": {"low": 25, "med": 40, "high": 35}}}, "NV": {"name": "Nevada", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 45, "inperson_share": 33, "hybrid_share": 22, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 75, "engagement": 82, "prep": 7.9, "rural_teen_share": 10, "gender_by_mode": {"Online": {"male": 53, "female": 47}, "In\u2011Person": {"male": 50, "female": 50}, "Hybrid": {"male": 47, "female": 53}}, "income_by_mode": {"Online": {"low": 23, "med": 47, "high": 30}, "In\u2011Person": {"low": 22, "med": 53, "high": 25}, "Hybrid": {"low": 20, "med": 59, "high": 21}}}, "NH": {"name": "New Hampshire", "allowed": false, "allow_inperson": true, "allow_hybrid": true, "online_share": 20, "inperson_share": 58, "hybrid_share": 22, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 77, "engagement": 78, "prep": 6.7, "rural_teen_share": 20, "gender_by_mode": {"Online": {"male": 51, "female": 49}, "In\u2011Person": {"male": 45, "female": 55}, "Hybrid": {"male": 58, "female": 42}}, "income_by_mode": {"Online": {"low": 32, "med": 30, "high": 38}, "In\u2011Person": {"low": 45, "med": 41, "high": 14}, "Hybrid": {"low": 20, "med": 56, "high": 24}}}, "NJ": {"name": "New Jersey", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 38, "inperson_share": 15, "hybrid_share": 47, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 82, "engagement": 62, "prep": 7.5, "rural_teen_share": 14, "gender_by_mode": {"Online": {"male": 55, "female": 45}, "In\u2011Person": {"male": 56, "female": 44}, "Hybrid": {"male": 51, "female": 49}}, "income_by_mode": {"Online": {"low": 36, "med": 54, "high": 10}, "In\u2011Person": {"low": 40, "med": 34, "high": 26}, "Hybrid": {"low": 26, "med": 48, "high": 26}}}, "NM": {"name": "New Mexico", "allowed": false, "allow_inperson": true, "allow_hybrid": true, "online_share": 18, "inperson_share": 23, "hybrid_share": 59, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 85, "engagement": 65, "prep": 8.4, "rural_teen_share": 9, "gender_by_mode": {"Online": {"male": 46, "female": 54}, "In\u2011Person": {"male": 48, "female": 52}, "Hybrid": {"male": 51, "female": 49}}, "income_by_mode": {"Online": {"low": 27, "med": 47, "high": 26}, "In\u2011Person": {"low": 32, "med": 54, "high": 14}, "Hybrid": {"low": 34, "med": 45, "high": 21}}}, "NY": {"name": "New York", "allowed": true, "allow_inperson": true, "allow_hybrid": false, "online_share": 14, "inperson_share": 54, "hybrid_share": 32, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 70, "engagement": 74, "prep": 7.5, "rural_teen_share": 7, "gender_by_mode": {"Online": {"male": 51, "female": 49}, "In\u2011Person": {"male": 56, "female": 44}, "Hybrid": {"male": 49, "female": 51}}, "income_by_mode": {"Online": {"low": 41, "med": 38, "high": 21}, "In\u2011Person": {"low": 26, "med": 54, "high": 20}, "Hybrid": {"low": 27, "med": 33, "high": 40}}}, "NC": {"name": "North Carolina", "allowed": true, "allow_inperson": true, "allow_hybrid": false, "online_share": 17, "inperson_share": 51, "hybrid_share": 32, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 77, "engagement": 80, "prep": 6.6, "rural_teen_share": 35, "gender_by_mode": {"Online": {"male": 48, "female": 52}, "In\u2011Person": {"male": 45, "female": 55}, "Hybrid": {"male": 58, "female": 42}}, "income_by_mode": {"Online": {"low": 37, "med": 42, "high": 21}, "In\u2011Person": {"low": 30, "med": 38, "high": 32}, "Hybrid": {"low": 47, "med": 35, "high": 18}}}, "ND": {"name": "North Dakota", "allowed": false, "allow_inperson": true, "allow_hybrid": false, "online_share": 34, "inperson_share": 32, "hybrid_share": 34, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 70, "engagement": 70, "prep": 6.8, "rural_teen_share": 5, "gender_by_mode": {"Online": {"male": 54, "female": 46}, "In\u2011Person": {"male": 53, "female": 47}, "Hybrid": {"male": 45, "female": 55}}, "income_by_mode": {"Online": {"low": 43, "med": 46, "high": 11}, "In\u2011Person": {"low": 47, "med": 32, "high": 21}, "Hybrid": {"low": 38, "med": 45, "high": 17}}}, "OH": {"name": "Ohio", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 37, "inperson_share": 38, "hybrid_share": 25, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 75, "engagement": 80, "prep": 6.7, "rural_teen_share": 17, "gender_by_mode": {"Online": {"male": 58, "female": 42}, "In\u2011Person": {"male": 57, "female": 43}, "Hybrid": {"male": 49, "female": 51}}, "income_by_mode": {"Online": {"low": 42, "med": 41, "high": 17}, "In\u2011Person": {"low": 46, "med": 30, "high": 24}, "Hybrid": {"low": 49, "med": 41, "high": 10}}}, "OK": {"name": "Oklahoma", "allowed": true, "allow_inperson": true, "allow_hybrid": false, "online_share": 65, "inperson_share": 12, "hybrid_share": 23, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 72, "engagement": 68, "prep": 7.7, "rural_teen_share": 8, "gender_by_mode": {"Online": {"male": 54, "female": 46}, "In\u2011Person": {"male": 54, "female": 46}, "Hybrid": {"male": 56, "female": 44}}, "income_by_mode": {"Online": {"low": 31, "med": 54, "high": 15}, "In\u2011Person": {"low": 26, "med": 58, "high": 16}, "Hybrid": {"low": 25, "med": 54, "high": 21}}}, "OR": {"name": "Oregon", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 40, "inperson_share": 42, "hybrid_share": 18, "formats": ["In\u2011Person", "Hybrid"], "oversight": "Oregon DOT \u2013 Traffic Safety Division", "providers": ["School districts", "Community colleges", "ODOT\u2011approved private schools"], "satisfaction": 76, "engagement": 65, "prep": 6.9, "rural_teen_share": 26, "gender_by_mode": {"Online": {"male": 47, "female": 53}, "In\u2011Person": {"male": 52, "female": 48}, "Hybrid": {"male": 50, "female": 50}}, "income_by_mode": {"Online": {"low": 47, "med": 40, "high": 13}, "In\u2011Person": {"low": 36, "med": 47, "high": 17}, "Hybrid": {"low": 36, "med": 38, "high": 26}}}, "PA": {"name": "Pennsylvania", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 52, "inperson_share": 19, "hybrid_share": 29, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 67, "engagement": 63, "prep": 8.4, "rural_teen_share": 5, "gender_by_mode": {"Online": {"male": 57, "female": 43}, "In\u2011Person": {"male": 56, "female": 44}, "Hybrid": {"male": 57, "female": 43}}, "income_by_mode": {"Online": {"low": 39, "med": 35, "high": 26}, "In\u2011Person": {"low": 39, "med": 43, "high": 18}, "Hybrid": {"low": 48, "med": 35, "high": 17}}}, "RI": {"name": "Rhode Island", "allowed": false, "allow_inperson": true, "allow_hybrid": true, "online_share": 10, "inperson_share": 53, "hybrid_share": 37, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 78, "engagement": 62, "prep": 8.2, "rural_teen_share": 7, "gender_by_mode": {"Online": {"male": 56, "female": 44}, "In\u2011Person": {"male": 51, "female": 49}, "Hybrid": {"male": 50, "female": 50}}, "income_by_mode": {"Online": {"low": 34, "med": 48, "high": 18}, "In\u2011Person": {"low": 30, "med": 30, "high": 40}, "Hybrid": {"low": 50, "med": 39, "high": 11}}}, "SC": {"name": "South Carolina", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 11, "inperson_share": 58, "hybrid_share": 31, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 82, "engagement": 66, "prep": 8.3, "rural_teen_share": 13, "gender_by_mode": {"Online": {"male": 56, "female": 44}, "In\u2011Person": {"male": 49, "female": 51}, "Hybrid": {"male": 59, "female": 41}}, "income_by_mode": {"Online": {"low": 33, "med": 57, "high": 10}, "In\u2011Person": {"low": 42, "med": 35, "high": 23}, "Hybrid": {"low": 21, "med": 54, "high": 25}}}, "SD": {"name": "South Dakota", "allowed": false, "allow_inperson": true, "allow_hybrid": true, "online_share": 41, "inperson_share": 33, "hybrid_share": 26, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 84, "engagement": 62, "prep": 8.1, "rural_teen_share": 16, "gender_by_mode": {"Online": {"male": 47, "female": 53}, "In\u2011Person": {"male": 60, "female": 40}, "Hybrid": {"male": 47, "female": 53}}, "income_by_mode": {"Online": {"low": 20, "med": 36, "high": 44}, "In\u2011Person": {"low": 45, "med": 33, "high": 22}, "Hybrid": {"low": 43, "med": 35, "high": 22}}}, "TN": {"name": "Tennessee", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 15, "inperson_share": 16, "hybrid_share": 69, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 83, "engagement": 68, "prep": 6.8, "rural_teen_share": 15, "gender_by_mode": {"Online": {"male": 46, "female": 54}, "In\u2011Person": {"male": 59, "female": 41}, "Hybrid": {"male": 49, "female": 51}}, "income_by_mode": {"Online": {"low": 34, "med": 49, "high": 17}, "In\u2011Person": {"low": 41, "med": 31, "high": 28}, "Hybrid": {"low": 20, "med": 35, "high": 45}}}, "TX": {"name": "Texas", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 55, "inperson_share": 30, "hybrid_share": 15, "formats": ["In\u2011Person", "Synchronous", "Asynchronous", "Parent\u2011Taught"], "oversight": "Texas Dept. of Licensing & Regulation (TDLR)", "providers": ["Public schools", "Private driving schools", "Online vendors", "Parents"], "satisfaction": 76, "engagement": 80, "prep": 8.3, "rural_teen_share": 34, "gender_by_mode": {"Online": {"male": 50, "female": 50}, "In\u2011Person": {"male": 47, "female": 53}, "Hybrid": {"male": 54, "female": 46}}, "income_by_mode": {"Online": {"low": 44, "med": 46, "high": 10}, "In\u2011Person": {"low": 34, "med": 35, "high": 31}, "Hybrid": {"low": 44, "med": 44, "high": 12}}}, "UT": {"name": "Utah", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 38, "inperson_share": 36, "hybrid_share": 26, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 77, "engagement": 73, "prep": 8.2, "rural_teen_share": 35, "gender_by_mode": {"Online": {"male": 47, "female": 53}, "In\u2011Person": {"male": 59, "female": 41}, "Hybrid": {"male": 49, "female": 51}}, "income_by_mode": {"Online": {"low": 38, "med": 51, "high": 11}, "In\u2011Person": {"low": 41, "med": 36, "high": 23}, "Hybrid": {"low": 48, "med": 36, "high": 16}}}, "VT": {"name": "Vermont", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 33, "inperson_share": 28, "hybrid_share": 39, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 72, "engagement": 64, "prep": 7.6, "rural_teen_share": 16, "gender_by_mode": {"Online": {"male": 55, "female": 45}, "In\u2011Person": {"male": 45, "female": 55}, "Hybrid": {"male": 57, "female": 43}}, "income_by_mode": {"Online": {"low": 31, "med": 49, "high": 20}, "In\u2011Person": {"low": 20, "med": 30, "high": 50}, "Hybrid": {"low": 22, "med": 51, "high": 27}}}, "VA": {"name": "Virginia", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 50, "inperson_share": 35, "hybrid_share": 15, "formats": ["In\u2011Person", "Online", "Hybrid"], "oversight": "Virginia Dept. of Education (VDOE) & DMV", "providers": ["Public schools", "DMV\u2011licensed driving schools"], "satisfaction": 72, "engagement": 77, "prep": 8.3, "rural_teen_share": 13, "gender_by_mode": {"Online": {"male": 56, "female": 44}, "In\u2011Person": {"male": 51, "female": 49}, "Hybrid": {"male": 46, "female": 54}}, "income_by_mode": {"Online": {"low": 47, "med": 35, "high": 18}, "In\u2011Person": {"low": 49, "med": 31, "high": 20}, "Hybrid": {"low": 31, "med": 32, "high": 37}}}, "WA": {"name": "Washington", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 22, "inperson_share": 54, "hybrid_share": 24, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 73, "engagement": 60, "prep": 7.2, "rural_teen_share": 8, "gender_by_mode": {"Online": {"male": 54, "female": 46}, "In\u2011Person": {"male": 57, "female": 43}, "Hybrid": {"male": 50, "female": 50}}, "income_by_mode": {"Online": {"low": 20, "med": 55, "high": 25}, "In\u2011Person": {"low": 31, "med": 49, "high": 20}, "Hybrid": {"low": 41, "med": 31, "high": 28}}}, "WV": {"name": "West Virginia", "allowed": false, "allow_inperson": true, "allow_hybrid": true, "online_share": 28, "inperson_share": 18, "hybrid_share": 54, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 78, "engagement": 70, "prep": 7.5, "rural_teen_share": 29, "gender_by_mode": {"Online": {"male": 49, "female": 51}, "In\u2011Person": {"male": 60, "female": 40}, "Hybrid": {"male": 49, "female": 51}}, "income_by_mode": {"Online": {"low": 21, "med": 43, "high": 36}, "In\u2011Person": {"low": 50, "med": 32, "high": 18}, "Hybrid": {"low": 50, "med": 35, "high": 15}}}, "WI": {"name": "Wisconsin", "allowed": true, "allow_inperson": true, "allow_hybrid": true, "online_share": 65, "inperson_share": 14, "hybrid_share": 21, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 70, "engagement": 79, "prep": 7.7, "rural_teen_share": 29, "gender_by_mode": {"Online": {"male": 45, "female": 55}, "In\u2011Person": {"male": 58, "female": 42}, "Hybrid": {"male": 46, "female": 54}}, "income_by_mode": {"Online": {"low": 42, "med": 41, "high": 17}, "In\u2011Person": {"low": 50, "med": 37, "high": 13}, "Hybrid": {"low": 31, "med": 59, "high": 10}}}, "WY": {"name": "Wyoming", "allowed": false, "allow_inperson": true, "allow_hybrid": true, "online_share": 68, "inperson_share": 13, "hybrid_share": 19, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 67, "engagement": 70, "prep": 7.9, "rural_teen_share": 13, "gender_by_mode": {"Online": {"male": 53, "female": 47}, "In\u2011Person": {"male": 53, "female": 47}, "Hybrid": {"male": 56, "female": 44}}, "income_by_mode": {"Online": {"low": 44, "med": 42, "high": 14}, "In\u2011Person": {"low": 22, "med": 43, "high": 35}, "Hybrid": {"low": 49, "med": 33, "high": 18}}}, "DC": {"name": "District of Columbia", "allowed": false, "allow_inperson": true, "allow_hybrid": true, "online_share": 13, "inperson_share": 48, "hybrid_share": 39, "formats": ["In\u2011Person"], "oversight": "State Agency / DMV", "providers": ["Public", "Private"], "satisfaction": 63, "engagement": 72, "prep": 6.7, "rural_teen_share": 35, "gender_by_mode": {"Online": {"male": 53, "female": 47}, "In\u2011Person": {"male": 48, "female": 52}, "Hybrid": {"male": 50, "female": 50}}, "income_by_mode": {"Online": {"low": 48, "med": 42, "high": 10}, "In\u2011Person": {"low": 50, "med": 39, "high": 11}, "Hybrid": {"low": 35, "med": 33, "high": 32}}}};
+const STATES = Object.keys(DATA);
+
+function drawMap(metric='online_share') {
+  const locations = STATES;
+  const z = STATES.map(s => DATA[s][metric]);
+  const nameMap = {
+    'online_share':'Online Share (%)',
+    'inperson_share':'In‑Person Share (%)',
+    'hybrid_share':'Hybrid Share (%)',
+    'rural_teen_share':'Rural Teen Share (%)'
+  };
+  const text = STATES.map(s => `${DATA[s].name}<br>${nameMap[metric]}: ${DATA[s][metric]}`);
+
+  const data = [{
+    type: 'choropleth',
+    locationmode: 'USA-states',
+    locations: locations,
+    z: z,
+    text: text,
+    colorscale: 'Blues',
+    colorbar: {title: nameMap[metric]},
+    marker: {line: {color:'#1f274d', width:1}}
+  }];
+
+  const layout = {
+    geo: { scope:'usa', bgcolor:'#121a39', lakecolor:'#121a39', landcolor:'#121a39' },
+    paper_bgcolor:'#121a39',
+    plot_bgcolor:'#121a39',
+    margin:{l:0,r:0,t:0,b:0}
+  };
+
+  Plotly.newPlot('map', data, layout, {displayModeBar:false});
+
+  const mapDiv = document.getElementById('map');
+  mapDiv.on('plotly_click', function(d){
+    const loc = d.points?.[0]?.location;
+    if (loc && DATA[loc]) { setState(loc); }
+  });
+}
+
+function setState(code){
+  const d = DATA[code];
+  window._currentCode = code;
+  document.getElementById('stateName').textContent = d.name;
+  document.getElementById('stateSubtitle').textContent = 'Program overview & indicators';
+  document.getElementById('kpiAllowed').textContent = d.allowed ? 'Yes' : 'No';
+  document.getElementById('kpiShare').textContent = d.online_share + '%';
+  document.getElementById('formats').innerHTML = d.formats.map(f=>`<span class="pill">${f}</span>`).join(' ');
+  document.getElementById('oversight').innerHTML = `<span class="pill">${d.oversight}</span>`;
+  document.getElementById('providers').innerHTML = d.providers.map(p=>`<span class="pill">${p}</span>`).join(' ');
+  document.getElementById('demo').textContent = `Rural teen share: ${d.rural_teen_share}%`;
+
+  // Mode pie
+  const pie = [{
+    type:'pie',
+    labels:['Online','In‑Person','Hybrid'],
+    values:[d.online_share, d.inperson_share, d.hybrid_share],
+    textinfo:'label+percent',
+    hovertemplate:'%{label}: %{value}%<extra></extra>'
+  }];
+  const pieLayout = {paper_bgcolor:'#121a39', plot_bgcolor:'#121a39', margin:{l:0,r:0,t:0,b:0}, showlegend:false};
+  Plotly.newPlot('modePie', pie, pieLayout, {displayModeBar:false});
+
+  // Breakdown by mode (gender or income)
+  drawModeBreakdown();
+
+  // perception radar
+  const polar = [d.satisfaction, d.engagement, d.prep*10];
+  const trace = { type:'scatterpolar', r: polar, theta:['Satisfaction','Engagement','Preparedness*10'], fill:'toself', name:d.name };
+  const layout = {
+    paper_bgcolor:'#121a39', plot_bgcolor:'#121a39',
+    polar:{bgcolor:'#0f1734', radialaxis:{visible:true, range:[0,100], gridcolor:'#233', linecolor:'#233'}, angularaxis:{gridcolor:'#233', linecolor:'#233'}},
+    margin:{l:30,r:30,t:10,b:10}, showlegend:false
+  };
+  Plotly.newPlot('radar', [trace], layout, {displayModeBar:false});
+}
+
+function drawModeBreakdown(){
+  const code = window._currentCode || 'CA';
+  const d = DATA[code];
+  const view = document.getElementById('breakdown').value;
+  let traces = [];
+  let layout = {barmode:'group', paper_bgcolor:'#121a39', plot_bgcolor:'#121a39', font:{color:'#e8eaf6'}, margin:{l:30,r:10,t:10,b:40}};
+  const x = ['Online','In‑Person','Hybrid'];
+
+  if (view==='gender') {
+    const male = x.map(m=> d.gender_by_mode[m].male);
+    const female = x.map(m=> d.gender_by_mode[m].female);
+    traces = [
+      {type:'bar', x, y: male, name:'Male %'},
+      {type:'bar', x, y: female, name:'Female %'}
+    ];
+  } else {
+    const low = x.map(m=> d.income_by_mode[m].low);
+    const med = x.map(m=> d.income_by_mode[m].med);
+    const high = x.map(m=> d.income_by_mode[m].high);
+    traces = [
+      {type:'bar', x, y: low, name:'Low %'},
+      {type:'bar', x, y: med, name:'Medium %'},
+      {type:'bar', x, y: high, name:'High %'}
+    ];
+    layout.barmode = 'stack';
+  }
+
+  Plotly.newPlot('modeBreakdown', traces, layout, {displayModeBar:false});
+}
+
+function populateSelectors(){
+  const sel = document.getElementById('selMulti');
+  STATES.forEach(code=>{
+    const opt = document.createElement('option'); 
+    opt.value = code; 
+    opt.textContent = DATA[code].name; 
+    sel.appendChild(opt);
+  });
+  ['CA','TX','FL','OR','VA'].forEach(c=>{
+    const o = Array.from(sel.options).find(x=>x.value===c);
+    if (o) o.selected = true;
+  });
+
+  const metricSel = document.getElementById('metric');
+  metricSel.addEventListener('change', ()=> drawMap(metricSel.value));
+
+  const breakdownSel = document.getElementById('breakdown');
+  breakdownSel.addEventListener('change', drawModeBreakdown);
+}
+
+function compare(){
+  const sel = document.getElementById('selMulti');
+  const chosen = Array.from(sel.selectedOptions).slice(0,5).map(o=>o.value);
+  if (chosen.length === 0) return;
+
+  const tbody = document.querySelector('#compareTable tbody');
+  tbody.innerHTML='';
+  const metrics = ['Online Share (%)','In‑Person Share (%)','Hybrid Share (%)','Rural Teen Share (%)','Satisfaction (%)','Engagement (%)','Preparedness (0–10)'];
+  const rows = metrics.map(m=>[m, chosen.map(c=>DATA[c].name+': '+(
+    m==='Online Share (%)' ? DATA[c].online_share :
+    m==='In‑Person Share (%)' ? DATA[c].inperson_share :
+    m==='Hybrid Share (%)' ? DATA[c].hybrid_share :
+    m==='Rural Teen Share (%)' ? DATA[c].rural_teen_share :
+    m==='Satisfaction (%)' ? DATA[c].satisfaction :
+    m==='Engagement (%)' ? DATA[c].engagement :
+    DATA[c].prep
+  )).join('  |  ')]);
+  rows.forEach(r=>{
+    const tr = document.createElement('tr');
+    r.forEach(c=>{ const td=document.createElement('td'); td.textContent=c; tr.appendChild(td); });
+    tbody.appendChild(tr);
+  });
+
+  const x = ['Online','In‑Person','Hybrid','Rural Teens','Satisfaction','Engagement','Preparedness*10'];
+  const traces = chosen.map(c=>({
+    type:'bar',
+    x, 
+    y:[DATA[c].online_share, DATA[c].inperson_share, DATA[c].hybrid_share, DATA[c].rural_teen_share, DATA[c].satisfaction, DATA[c].engagement, DATA[c].prep*10],
+    name: DATA[c].name
+  }));
+  const layout = {barmode:'group', paper_bgcolor:'#121a39', plot_bgcolor:'#121a39', font:{color:'#e8eaf6'}, margin:{l:30,r:10,t:10,b:40}};
+  Plotly.newPlot('compareChart', traces, layout, {displayModeBar:false});
+}
+
+function answerQuery(){
+  const el = document.getElementById('q');
+  const out = document.getElementById('answer');
+  const q = (el.value||'').toLowerCase();
+  if (!q) { out.textContent = 'Please type a question.'; return; }
+
+  const names = [];
+  for (const [code, d] of Object.entries(DATA)) {
+    if (q.includes(d.name.toLowerCase())) names.push(code);
+  }
+  const codeMatch = q.match(/\b[A-Z]{2}\b/g);
+  if (codeMatch) codeMatch.forEach(c=>{ if (DATA[c]) names.push(c); });
+  const uniq = [...new Set(names)].slice(0,5);
+
+  function reply(code, topic){
+    const d = DATA[code];
+    if (topic==='mode mix') return `${d.name} mode mix — Online ${d.online_share}%, In‑Person ${d.inperson_share}%, Hybrid ${d.hybrid_share}%`;
+    if (topic==='online share') return `${d.name} online share: ${d.online_share}%`;
+    if (topic==='inperson share') return `${d.name} in‑person share: ${d.inperson_share}%`;
+    if (topic==='hybrid share') return `${d.name} hybrid share: ${d.hybrid_share}%`;
+    if (topic==='rural') return `${d.name} rural teen share: ${d.rural_teen_share}%`;
+    if (topic==='allowed') return `${d.name} modes allowed — In‑Person: Yes, Online: ${d.allowed?'Yes':'No'}, Hybrid: ${d.allow_hybrid?'Yes':'No'}`;
+    if (topic==='formats') return `${d.name} formats: ${d.formats.join(', ')}`;
+    if (topic==='providers') return `${d.name} providers: ${d.providers.join(', ')}`;
+    if (topic==='oversight') return `${d.name} oversight: ${d.oversight}`;
+    if (topic==='gender') {
+      const g = d.gender_by_mode;
+      return `${d.name} gender by mode — Online M/F ${g["Online"].male}%/${g["Online"].female}%, In‑Person M/F ${g["In‑Person"].male}%/${g["In‑Person"].female}%, Hybrid M/F ${g["Hybrid"].male}%/${g["Hybrid"].female}%`;
+    }
+    if (topic==='income') {
+      const inc = d.income_by_mode;
+      return `${d.name} income by mode — Online L/M/H ${inc["Online"].low}%/${inc["Online"].med}%/${inc["Online"].high}%, In‑Person L/M/H ${inc["In‑Person"].low}%/${inc["In‑Person"].med}%/${inc["In‑Person"].high}%, Hybrid L/M/H ${inc["Hybrid"].low}%/${inc["Hybrid"].med}%/${inc["Hybrid"].high}%`;
+    }
+    return null;
+  }
+
+  if (q.includes('compare') && uniq.length>=2) {
+    const a = DATA[uniq[0]], b = DATA[uniq[1]];
+    out.innerHTML = `<div>Comparing <b>${a.name}</b> vs <b>${b.name}</b>:</div>
+    <ul class='small'>
+      <li>Mode mix — Online ${a.online_share}% vs ${b.online_share}%, In‑Person ${a.inperson_share}% vs ${b.inperson_share}%, Hybrid ${a.hybrid_share}% vs ${b.hybrid_share}%</li>
+      <li>Rural teen share: ${a.rural_teen_share}% vs ${b.rural_teen_share}%</li>
+      <li>Satisfaction: ${a.satisfaction}% vs ${b.satisfaction}%</li>
+      <li>Engagement: ${a.engagement}% vs ${b.engagement}%</li>
+      <li>Preparedness: ${a.prep} vs ${b.prep}</li>
+      <li>Formats: ${a.formats.join(', ')} vs ${b.formats.join(', ')}</li>
+      <li>Oversight: ${a.oversight} vs ${b.oversight}</li>
+    </ul>`;
+    return;
+  }
+
+  if (uniq.length>=1) {
+    const code = uniq[0];
+    if (q.includes('mode')) { out.textContent = reply(code,'mode mix'); return; }
+    if (q.includes('online')) { out.textContent = reply(code,'online share'); return; }
+    if (q.includes('in-person') || q.includes('in person')) { out.textContent = reply(code,'inperson share'); return; }
+    if (q.includes('hybrid')) { out.textContent = reply(code,'hybrid share'); return; }
+    if (q.includes('rural')) { out.textContent = reply(code,'rural'); return; }
+    if (q.includes('allow')) { out.textContent = reply(code,'allowed'); return; }
+    if (q.includes('format')) { out.textContent = reply(code,'formats'); return; }
+    if (q.includes('provider')) { out.textContent = reply(code,'providers'); return; }
+    if (q.includes('oversight') || q.includes('agency')) { out.textContent = reply(code,'oversight'); return; }
+    if (q.includes('gender')) { out.textContent = reply(code,'gender'); return; }
+    if (q.includes('income')) { out.textContent = reply(code,'income'); return; }
+    const d = DATA[code];
+    out.innerHTML = `<div><b>${d.name}</b>: mode mix — Online ${d.online_share}%, In‑Person ${d.inperson_share}%, Hybrid ${d.hybrid_share}%. Gender and income breakdowns available above.</div>`;
+    return;
+  }
+
+  out.textContent = "Try: 'Mode mix in Texas', 'Gender in California', 'Income in Florida', 'Compare Oregon and Virginia', or 'Who oversees Oregon?'";
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  drawMap();
+  populateSelectors();
+  setState('CA');
+  compare();
+  document.getElementById('compareBtn').addEventListener('click', compare);
+  document.getElementById('askBtn').addEventListener('click', answerQuery);
+  document.getElementById('q').addEventListener('keydown', (e)=>{ if (e.key==='Enter') answerQuery(); });
+  document.getElementById('metric').addEventListener('change', (e)=> drawMap(e.target.value));
+  document.getElementById('breakdown').addEventListener('change', drawModeBreakdown);
+});
+</script>
+</body>
+</html>
